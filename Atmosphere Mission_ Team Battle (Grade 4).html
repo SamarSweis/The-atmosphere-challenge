@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Atmosphere Mission: Team Battle</title>
+<style>
+:root{color-scheme:dark;--bg1:#0b1033;--bg2:#1b2a6b;--card:#ffffff18;--tx:#fff;--a:#ff5a5f;--b:#3aa0ff;--gold:#ffd23f;--ok:#2ecc71;--no:#e74c3c;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;color:var(--tx);background:radial-gradient(circle at 20% 0,var(--bg2),var(--bg1) 70%) fixed;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;background-image:radial-gradient(#fff 1px,transparent 1.5px);background-size:90px 90px;opacity:.25;pointer-events:none}
+.wrap{max-width:980px;margin:0 auto;padding:12px;position:relative}
+h1{text-align:center;margin:6px 0;font-size:clamp(22px,4.5vw,38px);color:var(--gold)}
+.board{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0}
+.team{background:var(--card);border:3px solid transparent;border-radius:16px;padding:8px 12px;transition:.3s}
+.team.on{transform:scale(1.03);box-shadow:0 0 22px var(--c)}
+.team.on{border-color:var(--c)}
+.team .nm{font-weight:bold;font-size:clamp(14px,2.6vw,20px);color:var(--c)}
+.team .sc{font-size:clamp(30px,6vw,52px);font-weight:900;line-height:1}
+.team .meta{display:flex;gap:8px;align-items:center;min-height:30px;font-size:14px}
+button{font:inherit;cursor:pointer}
+.star{background:var(--gold);color:#222;border:0;border-radius:20px;padding:3px 10px;font-weight:bold}
+.star:disabled{opacity:.35;cursor:default}
+.track{position:relative;height:16px;border-radius:10px;margin-top:6px;background:linear-gradient(90deg,#3d8b4f 0 20%,#2f7fb8 20% 40%,#6a4fc0 40% 60%,#c0582f 60% 80%,#1a1a2e 80%)}
+.track i{position:absolute;top:-9px;font-style:normal;font-size:24px;transition:left .8s;transform:translateX(-50%)}
+.lay{display:flex;font-size:9px;opacity:.8;margin-top:1px}.lay span{flex:1;text-align:center}
+.stage{background:var(--card);border-radius:20px;padding:clamp(12px,3vw,24px);min-height:330px}
+.round{color:var(--gold);font-weight:bold;text-align:center}
+.turn{text-align:center;font-size:clamp(18px,3.5vw,26px);font-weight:900;margin:4px 0}
+.q{font-size:clamp(20px,4vw,30px);text-align:center;margin:10px 0 16px;font-weight:bold}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opt{background:#fff;color:#14204f;border:0;border-radius:14px;padding:14px;font-size:clamp(16px,3vw,22px);font-weight:bold;transition:.15s;box-shadow:0 4px 0 #0005}
+.opt:hover:not(:disabled){transform:translateY(-3px);background:#fff6c9}
+.opt:disabled{cursor:default}
+.opt.ok{background:var(--ok);color:#fff}.opt.no{background:var(--no);color:#fff;animation:shake .4s}
+.opt.dim{opacity:.4}
+.fact{background:#0006;border-left:6px solid var(--gold);border-radius:10px;padding:10px 14px;margin:14px 0;font-size:clamp(15px,2.8vw,20px)}
+.big{display:block;margin:14px auto 0;background:var(--gold);color:#222;border:0;border-radius:30px;padding:12px 30px;font-size:22px;font-weight:900;box-shadow:0 5px 0 #a8870e}
+.setup{text-align:center}
+.setup input{font:inherit;font-size:20px;padding:8px 12px;border-radius:12px;border:3px solid;width:min(260px,90%);margin:6px;text-align:center;color:#fff;background:#0004}
+.stack{display:flex;flex-direction:column-reverse;gap:6px;max-width:420px;margin:8px auto}
+.slot{border:3px dashed #fff8;border-radius:12px;padding:8px;text-align:center;font-weight:bold;font-size:20px;min-height:44px}
+.slot.f{border-style:solid;color:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:10px}
+.chip{border:0;border-radius:20px;padding:10px 16px;font-size:19px;font-weight:bold;background:#fff;color:#14204f}
+.chip.used{visibility:hidden}.chip.shake{animation:shake .4s;background:var(--no);color:#fff}
+.pop{position:fixed;font-size:44px;font-weight:900;color:var(--gold);text-shadow:0 3px 0 #000;pointer-events:none;animation:up 1.3s forwards;z-index:9}
+.conf{position:fixed;top:-40px;font-size:30px;animation:fall 3s linear forwards;pointer-events:none;z-index:8}
+.mus{position:fixed;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:10;background:#000a;color:#fff;border:2px solid #fff6;border-radius:30px;padding:8px 14px}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+@keyframes up{to{transform:translateY(-120px) scale(1.4);opacity:0}}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
+@media(max-width:560px){.opts{grid-template-columns:1fr}}
+</style></head><body>
+<div class="wrap">
+<h1>🌍 Atmosphere Mission: Team Battle 🚀</h1>
+<div class="board" id="board" hidden></div>
+<div class="stage" id="stage"></div>
+</div>
+<button class="mus" id="mus" hidden>🎵 Music: ON</button>
+<script>
+const R=["🌍 Round 1: What is the atmosphere?","🧱 Round 2: Layers of the atmosphere","🛰️ Round 3: Space, meteors and the ozone layer"];
+const L=["Troposphere","Stratosphere","Mesosphere","Thermosphere","Exosphere"];
+const LC=["#3d8b4f","#2f7fb8","#6a4fc0","#c0582f","#444a8a"];
+// [round, question, correct, wrong answers, fact]
+const Q=[
+[0,"The Earth is surrounded by a layer of air called the ___.","atmosphere",["ozone","satellite","meteor"],"The atmosphere is the layer of gases that surrounds our planet."],
+[0,"The atmosphere goes up to about ___ km above the surface of the Earth.","1000",["10","100","5"],"It extends to a height of about 1000 km above the Earth."],
+[0,"The atmosphere protects the Earth from harmful ___ coming from the Sun.","radiations",["rainbows","birds","clouds"],"It protects us from harmful radiations that come from the Sun and outer space."],
+[0,"The atmosphere keeps the Earth ___ by trapping some heat from the Sun.","warm",["cold","dark","windy"],"The atmosphere is like a big cozy blanket around the Earth."],
+[0,"The atmosphere is divided into ___ layers.","five",["two","three","ten"],"Five layers: troposphere, stratosphere, mesosphere, thermosphere and exosphere."],
+[0,"What would happen to Earth if the atmosphere disappeared?","Earth would be cold and living things cannot survive.",["Dinosaurs would come back.","Plants would grow everywhere.","Superman would rescue the Earth."],"No atmosphere means no warmth and no protection. We need it!"],
+["O"],
+[1,"🐦 A bird flies in the layer closest to the Earth. Which layer is it?","Troposphere",["Stratosphere","Mesosphere","Thermosphere"],"The troposphere is the layer closest to the Earth. Clouds and weather are here."],
+[1,"☄️ A meteor enters the atmosphere and burns up. Which layer is it in?","Mesosphere",["Troposphere","Exosphere","Stratosphere"],"Meteors burn up in the mesosphere and make bright streaks of light."],
+[1,"🚀 A space shuttle flies high up in which layer?","Thermosphere",["Troposphere","Stratosphere","Mesosphere"],"Space shuttles and space stations travel high above us, in the thermosphere."],
+[2,"How do satellites help us study the Earth and the atmosphere?","They send us information about weather and take pictures of the Earth.",["They make rain fall.","They cook food for astronauts.","They plant trees."],"Satellites are like little machines floating in space."],
+[2,"Space stations are like homes for ___ in space.","astronauts",["pilots","dinosaurs","farmers"],"Astronauts live and work in space stations."],
+[2,"What do astronauts do in space stations?","They live and work, run experiments and study the atmosphere.",["They only sleep all day.","They plant trees on Earth.","They build houses."],"They also learn more about our universe."],
+[2,"What happens when meteors enter the Earth’s atmosphere?","They burn up and make bright streaks of light.",["They turn into plants.","They become satellites.","They stop the Sun."],"It’s like a small firework show in the sky!"],
+[2,"Why is the ozone layer important?","It helps protect us from harmful radiations.",["It makes it rain.","It makes the Sun hotter.","It gives us water."],"The ozone layer is a special layer in the atmosphere."],
+[2,"What can harm the ozone layer?","Harmful chemicals from aircrafts and other sources.",["Clouds and rain.","Satellites taking pictures.","Birds flying."],"We need to take care of the ozone layer!"]
+];
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuf=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(p=>p[1]);
+const TC=["var(--a)","var(--b)"];
+let S,ac,mOn=true,mt;
+/* ---------- sound ---------- */
+function tone(f,d,ty="sine",v=.15,dl=0){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+dl;o.type=ty;o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+d+.05)}
+function noise(d,v,dl,f,f2){if(!ac)return;const n=ac.sampleRate*d,b=ac.createBuffer(1,n,ac.sampleRate),a=b.getChannelData(0);for(let i=0;i<n;i++)a[i]=Math.random()*2-1;const s=ac.createBufferSource(),fl=ac.createBiquadFilter(),g=ac.createGain(),t=ac.currentTime+dl;s.buffer=b;fl.type="bandpass";fl.frequency.setValueAtTime(f,t);if(f2)fl.frequency.linearRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);s.connect(fl);fl.connect(g);g.connect(ac.destination);s.start(t)}
+const clap=n=>{for(let i=0;i<n;i++)noise(.09,.6,i*.08+Math.random()*.06,1200+Math.random()*1800)};
+const sCorrect=()=>{[523,659,784,1047].forEach((f,i)=>tone(f,.25,"triangle",.2,i*.09));clap(8)};
+const sWrong=()=>{tone(220,.3,"sawtooth",.15);tone(150,.45,"sawtooth",.15,.25)};
+const sSteal=()=>{[784,988,1175].forEach((f,i)=>tone(f,.2,"square",.08,i*.08));clap(5)};
+const sStar=()=>{[600,900,1200,1500].forEach((f,i)=>tone(f,.15,"square",.07,i*.06))};
+const sCheer=()=>{noise(1.6,.35,0,500,1600);noise(1.6,.3,.1,800,2200);clap(18)};
+const sFan=()=>{[523,523,523,659,784,659,784,1047].forEach((f,i)=>tone(f,.3,"triangle",.2,i*.16));sCheer()};
+const MEL=[0,2,4,2,5,4,2,0,1,3,4,3,5,4,3,1],PN=[262,294,330,392,440,523];
+function music(){clearInterval(mt);if(!mOn||!ac)return;let k=0;mt=setInterval(()=>{tone(PN[MEL[k%16]]*2,.22,"triangle",.045);if(k%4==0)tone(PN[[0,3,4,2][(k>>2)%4]]/2,.5,"sine",.07);k++},240)}
+$("mus").onclick=()=>{mOn=!mOn;$("mus").textContent="🎵 Music: "+(mOn?"ON":"OFF");music()};
+/* ---------- effects ---------- */
+function pop(txt,x,y){const e=document.createElement("div");e.className="pop";e.textContent=txt;e.style.left=(x||innerWidth/2-60)+"px";e.style.top=(y||innerHeight/2)+"px";document.body.appendChild(e);setTimeout(()=>e.remove(),1400)}
+function conf(n){for(let i=0;i<n;i++){const e=document.createElement("div");e.className="conf";e.textContent=["⭐","🎉","✨","🚀","🌟"][i%5];e.style.left=Math.random()*100+"vw";e.style.animationDelay=Math.random()*1.5+"s";document.body.appendChild(e);setTimeout(()=>e.remove(),5000)}}
+/* ---------- setup ---------- */
+function intro(){$("stage").innerHTML=`<div class="setup"><div class="turn">Two teams. One atmosphere. Who will reach space first? 🚀</div>
+<p style="font-size:19px">Answer to climb through the five layers. Right answer = <b>10 points</b>. Two right in a row = <b>+5 bonus</b>. Wrong answer? The other team can <b>steal 5 points</b>! Each team has one ⭐ <b>Double Points</b> card.</p>
+<input id="n0" value="Red Rockets" style="border-color:var(--a)" maxlength="18"><input id="n1" value="Blue Comets" style="border-color:var(--b)" maxlength="18">
+<button class="big" id="go">Start the Mission! 🎮</button></div>`;$("go").onclick=start}
+function start(){const n=[$("n0").value.trim()||"Team 1",$("n1").value.trim()||"Team 2"];S={n,sc:[0,0],st:[0,0],star:[1,1],i:0,dbl:0,ph:""};
+ac=ac||new (window.AudioContext||window.webkitAudioContext)();ac.resume();$("mus").hidden=false;music();sStar();$("board").hidden=false;next()}
+/* ---------- scoreboard ---------- */
+function board(){const t=S.i%2;$("board").innerHTML=[0,1].map(k=>{const p=Math.min(S.sc[k]/150,1)*100,lit=Math.floor(p/20);
+return `<div class="team ${S.ph&&S.who===k?"on":""}" style="--c:${TC[k]}"><div class="nm">${esc(S.n[k])}</div><div class="sc">${S.sc[k]}</div>
+<div class="meta">${S.st[k]>=2?"🔥 Streak x"+S.st[k]:""}<button class="star" data-k="${k}" ${S.star[k]&&S.ph=="ask"&&S.who===k&&!S.dbl?"":"disabled"}>${S.star[k]?"⭐ Double":S.dbl&&S.who===k?"⭐ x2 ON":"⭐ used"}</button></div>
+<div class="track"><i style="left:${Math.max(p,3)}%">🚀</i></div><div class="lay">${["Tropo","Strato","Meso","Thermo","Exo"].map((x,j)=>`<span style="${j<=lit&&p>0?"opacity:1;font-weight:bold":""}">${x}</span>`).join("")}</div></div>`}).join("");
+document.querySelectorAll(".star").forEach(b=>b.onclick=()=>{if(S.star[b.dataset.k]){S.star[b.dataset.k]=0;S.dbl=1;sStar();pop("⭐ x2 POINTS!");board()}})}
+function award(k,p,msg){S.sc[k]+=p;pop("+"+p+(msg?" "+msg:""));board()}
+/* ---------- flow ---------- */
+function head(q){return `<div class="round">${R[q[0]=="O"?1:q[0]]}</div><div class="turn" style="color:${TC[S.who]}">${esc(S.n[S.who])}, it’s your turn! 🎯</div>`}
+function next(){if(S.i>=Q.length)return end();const q=Q[S.i];S.who=S.i%2;S.dbl=0;S.ph="ask";board();q[0]=="O"?order():mc(q)}
+function mc(q){const o=shuf([[q[2],1],...q[3].map(w=>[w,0])]);
+$("stage").innerHTML=head(q)+`<div class="q">${q[1]}</div><div class="opts">${o.map((x,i)=>`<button class="opt" data-i="${i}">${esc(x[0])}</button>`).join("")}</div><div id="fb"></div>`;
+const bs=[...document.querySelectorAll(".opt")];
+bs.forEach((b,i)=>b.onclick=()=>{const ok=o[i][1];
+if(S.ph=="ask"){const k=S.who;
+if(ok){S.st[k]++;let p=(S.dbl?20:10)+(S.st[k]>=2?5:0);sCorrect();award(k,p,S.st[k]>=2?"🔥":"");conf(14);reveal(bs,o,q[4],"🎉 Correct! Well done "+esc(S.n[k])+"!")}
+else{S.st[k]=0;b.classList.add("no");b.disabled=true;sWrong();S.ph="steal";S.who=1-k;board();
+$("fb").innerHTML=`<div class="turn" style="color:${TC[S.who]}">😮 Oh no! ${esc(S.n[S.who])}, steal 5 points! 🦹</div>`}}
+else if(S.ph=="steal"){if(ok){sSteal();award(S.who,5,"🦹 STEAL!");conf(10);reveal(bs,o,q[4],"🦹 Great steal, "+esc(S.n[S.who])+"!")}
+else{b.classList.add("no");sWrong();reveal(bs,o,q[4],"Not this time. Here is the right answer:")}}})}
+function reveal(bs,o,fact,msg){S.ph="done";bs.forEach((b,i)=>{b.disabled=true;if(o&&o[i][1])b.classList.add("ok");else if(!b.classList.contains("no"))b.classList.add("dim")});board();
+$("fb").innerHTML=`<div class="fact"><b>${msg}</b><br>💡 ${fact}</div><button class="big" id="nx">${S.i>=Q.length-1?"See the results 🏆":"Next ➜"}</button>`;$("nx").onclick=()=>{S.i++;next()}}
+function order(){const q=["O"];S.o={g:0,m:0};
+$("stage").innerHTML=head(q)+`<div class="q">🧱 Build the atmosphere! Tap the layers in order, from the Earth up to space.</div>
+<div class="stack" id="stk">${L.map((l,i)=>`<div class="slot" id="s${i}">${i==0?"🌍 closest to Earth":i==4?"🌌 closest to space":"?"}</div>`).join("")}</div>
+<div class="chips" id="chp">${shuf(L.map((l,i)=>i)).map(i=>`<button class="chip" data-i="${i}">${L[i]}</button>`).join("")}</div><div id="fb"></div>`;
+document.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{const i=+c.dataset.i;
+if(i==S.o.g){const s=$("s"+i);s.textContent=L[i];s.classList.add("f");s.style.background=LC[i];c.classList.add("used");tone(500+i*120,.25,"triangle",.2);clap(2);S.o.g++;
+if(S.o.g==5){const m=S.o.m,p=(m==0?25:m==1?15:5)*(S.dbl?2:1);S.st[S.who]++;sCorrect();award(S.who,p);conf(16);S.ph="done";
+$("fb").innerHTML=`<div class="fact"><b>🎉 The atmosphere is built! ${m==0?"Perfect, no mistakes!":"Mistakes: "+m}</b><br>💡 From the Earth up: Troposphere, Stratosphere, Mesosphere, Thermosphere, Exosphere. That is all <b>five</b> layers!</div><button class="big" id="nx">Next ➜</button>`;$("nx").onclick=()=>{S.i++;next()}}}
+else{S.o.m++;sWrong();c.classList.add("shake");setTimeout(()=>c.classList.remove("shake"),450)}})}
+function end(){S.ph="";S.who=-1;board();const[a,b]=S.sc,w=a==b?-1:a>b?0:1;
+$("stage").innerHTML=`<div class="setup"><div class="round">🏁 Mission complete!</div>
+<div class="turn" style="font-size:clamp(26px,6vw,46px);color:${w<0?"var(--gold)":TC[w]}">${w<0?"🤝 It’s a tie! Great teamwork!":"🏆 "+esc(S.n[w])+" wins! 🏆"}</div>
+<p style="font-size:22px">${esc(S.n[0])}: <b>${a}</b> points &nbsp;|&nbsp; ${esc(S.n[1])}: <b>${b}</b> points</p>
+<p style="font-size:19px">Today we learned: the atmosphere keeps us warm and safe, it has five layers, and we must take care of the ozone layer. 🌍💚</p>
+<button class="big" id="again">Play again 🔁</button></div>`;
+sFan();conf(60);setTimeout(()=>{sCheer();conf(40)},1800);$("again").onclick=()=>{$("board").hidden=true;Q.forEach(q=>{});intro()}}
+intro();
+</script></body></html>
